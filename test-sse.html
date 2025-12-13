@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SSE Test</title>
+</head>
+<body>
+    <h1>SSE Stream Test</h1>
+    <button onclick="testSSE()">Test SSE Stream</button>
+    <div id="output" style="white-space: pre-wrap; font-family: monospace; margin-top: 20px;"></div>
+
+    <script>
+        function testSSE() {
+            const output = document.getElementById('output');
+            output.textContent = 'Starting test...\n';
+
+            fetch('http://localhost:8000/api/council/debate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    query: 'test question',
+                    council_members: ['llama3.2:latest', 'Mistral:latest'],
+                    chairman: 'llama3.2:latest',
+                }),
+            })
+            .then(response => {
+                console.log('Response received:', response);
+                output.textContent += 'Got response, reading stream...\n';
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                function read() {
+                    reader.read().then(({ done, value }) => {
+                        if (done) {
+                            output.textContent += '\n=== STREAM ENDED ===\n';
+                            return;
+                        }
+
+                        const text = decoder.decode(value, { stream: true });
+                        output.textContent += text;
+                        console.log('Received chunk:', text);
+                        read();
+                    });
+                }
+
+                read();
+            })
+            .catch(err => {
+                output.textContent += 'ERROR: ' + err.message + '\n';
+                console.error(err);
+            });
+        }
+    </script>
+</body>
+</html>
