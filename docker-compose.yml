@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  llm-council:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: llm-council-app
+    ports:
+      - "8000:8000"
+    environment:
+      # LiteLLM Proxy Configuration
+      - LITELLM_PROXY_URL=${LITELLM_PROXY_URL:-http://host.docker.internal:4000}
+      - LITELLM_API_KEY=${LITELLM_API_KEY:-your-api-key-here}
+
+      # Database Configuration
+      - DATABASE_URL=sqlite+aiosqlite:///./data/database.db
+
+      # CORS Configuration (allow all for containerized deployment)
+      - CORS_ORIGINS=*
+    volumes:
+      # Persist database outside container
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - llm-council-network
+
+networks:
+  llm-council-network:
+    driver: bridge
