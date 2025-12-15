@@ -178,7 +178,28 @@ export default function App() {
       {/* Footer */}
       <footer className="mt-12 py-6 border-t border-gray-700">
         <div className="max-w-7xl mx-auto px-4 text-center text-sm text-gray-400">
-          <p>Multi-Model AI Decision Framework • LLM Council v1.0.0</p>
+          <p className="mb-2">Multi-Model AI Decision Framework • LLM Council v1.0.0 • MIT License</p>
+          <div className="flex justify-center space-x-4">
+            <span>&copy; 2025 Barnaby Jeans</span>
+            <span>•</span>
+            <a
+              href="https://github.com/bjeans/Multi-AI-Chat"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-blue-400 transition-colors"
+            >
+              GitHub
+            </a>
+            <span>•</span>
+            <a
+              href="https://hub.docker.com/r/bjeans/multi-ai-chat"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-blue-400 transition-colors"
+            >
+              DockerHub
+            </a>
+          </div>
         </div>
       </footer>
     </div>
