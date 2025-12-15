@@ -1,7 +1,6 @@
-version: '3.8'
-
 services:
   llm-council:
+    image: bjeans/multi-ai-chat:latest
     build:
       context: .
       dockerfile: Dockerfile
