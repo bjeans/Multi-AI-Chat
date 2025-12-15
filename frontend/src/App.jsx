@@ -76,16 +76,16 @@ export default function App() {
   const councilMembersList = Object.keys(displayResponses);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-[#0a0e1a]">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+      <header className="bg-[#1a2332] shadow-lg border-b border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
                 LLM Council
               </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-gray-400">
                 Multi-Model AI Decision Framework
               </p>
             </div>
@@ -103,15 +103,15 @@ export default function App() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Error Display */}
         {error && (
-          <div className="mb-4 p-4 bg-red-100 dark:bg-red-900/20 border border-red-400 dark:border-red-700 rounded-lg">
-            <p className="text-red-700 dark:text-red-400">Error: {error}</p>
+          <div className="mb-4 p-4 bg-red-900/30 border border-red-700 rounded-lg">
+            <p className="text-red-400">Error: {error}</p>
           </div>
         )}
 
         {/* Decision ID Display */}
         {displayDecisionId && (
-          <div className="mb-4 p-3 bg-blue-100 dark:bg-blue-900/20 border border-blue-400 dark:border-blue-700 rounded-lg">
-            <p className="text-blue-700 dark:text-blue-400 text-sm">
+          <div className="mb-4 p-3 bg-blue-900/30 border border-blue-700 rounded-lg">
+            <p className="text-blue-400 text-sm">
               {historicalData ? '📜 Historical ' : ''}Decision ID: <span className="font-mono font-bold">#{displayDecisionId}</span>
               {historicalData && (
                 <button
@@ -146,7 +146,7 @@ export default function App() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Council Member Responses - Left Column (2/3) */}
             <div className="lg:col-span-2 space-y-4">
-              <h2 className="text-2xl font-bold">Council Responses</h2>
+              <h2 className="text-2xl font-bold text-gray-100">Council Responses</h2>
               {councilMembersList.map(modelId => (
                 <CouncilMemberCard
                   key={modelId}
@@ -169,15 +169,15 @@ export default function App() {
         {/* Loading State */}
         {modelsLoading && (
           <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600 dark:text-gray-400">Loading models...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+            <p className="mt-4 text-gray-400">Loading models...</p>
           </div>
         )}
       </main>
 
       {/* Footer */}
-      <footer className="mt-12 py-6 border-t border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 text-center text-sm text-gray-600 dark:text-gray-400">
+      <footer className="mt-12 py-6 border-t border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 text-center text-sm text-gray-400">
           <p>Multi-Model AI Decision Framework • LLM Council v1.0.0</p>
         </div>
       </footer>
