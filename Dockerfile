@@ -1,5 +1,9 @@
+# Multi-AI Chat - Docker Container
 # Multi-stage build for LLM Council Multi-AI Chat Application
-# Stage 1: Build Frontend
+# https://github.com/bjeans/Multi-AI-Chat
+# https://hub.docker.com/r/bjeans/multi-ai-chat
+
+# === Frontend Builder Stage ===
 FROM node:20-alpine AS frontend-builder
 
 WORKDIR /frontend
@@ -17,22 +21,24 @@ COPY frontend/ ./
 # Build frontend for production
 RUN npm run build
 
-# Stage 2: Backend + Serve Frontend
-FROM python:3.11-slim
+# === Runtime Stage ===
+FROM python:3.14-alpine
+
+# Metadata
+LABEL maintainer="Barnaby Jeans <barnaby@bjeans.dev>"
+LABEL description="Multi-AI debate platform using LLM council for synthesized responses"
+LABEL org.opencontainers.image.source="https://github.com/bjeans/Multi-AI-Chat"
+LABEL org.opencontainers.image.licenses="MIT"
 
 WORKDIR /app
-
-# Install system dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
 
 # Copy backend requirements
 COPY backend/requirements.txt ./
 
+# Upgrade pip to 25.3+ (mitigates CVE-2025-8869: pip tarfile link following vulnerability)
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade "pip>=25.3" && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy backend code
 COPY backend/ ./
@@ -46,11 +52,11 @@ RUN mkdir -p /app/data
 # Expose port
 EXPOSE 8000
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
-ENV DATABASE_URL=sqlite+aiosqlite:///./data/database.db
+# Environment variables with defaults
+ENV PYTHONUNBUFFERED=1 \
+    DATABASE_URL=sqlite+aiosqlite:///./data/database.db
 
-# Health check
+# Health check (verifies the /health endpoint is responding)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
 
