@@ -56,7 +56,7 @@ export default function HistoryBrowser({ onSelectDecision }) {
       </div>
 
       {decisions.length === 0 ? (
-        <p className="text-gray-400 italic">No decisions yet. Start a debate to create one!</p>
+        <p className="text-gray-400 italic">No decisions yet. Start research to create one!</p>
       ) : (
         <div className="space-y-2 max-h-96 overflow-y-auto">
           {decisions.map(decision => (

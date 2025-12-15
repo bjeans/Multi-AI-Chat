@@ -51,7 +51,7 @@ export default function CouncilMemberCard({ modelId, response, isChairman }) {
         {response.status === 'error' ? (
           <p className="text-red-400">{response.error}</p>
         ) : response.text ? (
-          <div className="text-gray-300 max-w-none text-sm whitespace-pre-wrap leading-relaxed">
+          <div className="prose prose-invert prose-sm max-w-none">
             {response.text}
             {response.status === 'streaming' && (
               <span className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse"></span>

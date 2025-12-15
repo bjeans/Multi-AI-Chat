@@ -1,16 +1,28 @@
 import { useState } from 'react';
 
+// Quick prompt examples - moved outside component for performance
+const QUICK_PROMPTS = {
+  'Web Frameworks': 'What are the pros and cons of different web frameworks for a modern web application?',
+  'API Security': 'What are the best practices for securing REST APIs in production environments?',
+  'Architecture': 'What are the pros and cons of different database architectures for a high-traffic e-commerce platform?',
+};
+
+// Helper function to get model provider label
+const getModelProviderLabel = (modelId) => {
+  if (modelId.includes('gpt')) return 'OpenAI Flagship';
+  if (modelId.includes('claude')) return 'Anthropic Flagship';
+  if (modelId.includes('gemini')) return 'Google Flagship';
+  if (modelId.includes('llama')) return 'Meta Flagship';
+  if (modelId.includes('mistral')) return 'Mistral AI Flagship';
+  if (modelId.includes('deepseek')) return 'DeepSeek Reasoning';
+  if (modelId.includes('grok')) return 'xAI Flagship';
+  return 'AI Model';
+};
+
 export default function QueryInput({ models, onSubmit, disabled }) {
   const [query, setQuery] = useState('');
   const [selectedModels, setSelectedModels] = useState([]);
   const [chairman, setChairman] = useState('');
-
-  // Quick prompts for easy selection
-  const quickPrompts = [
-    'Web Frameworks',
-    'API Security',
-    'Architecture',
-  ];
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -30,12 +42,14 @@ export default function QueryInput({ models, onSubmit, disabled }) {
   };
 
   const handleQuickPrompt = (prompt) => {
-    const prompts = {
-      'Web Frameworks': 'What are the pros and cons of different web frameworks for a modern web application?',
-      'API Security': 'What are the best practices for securing REST APIs in production environments?',
-      'Architecture': 'What are the pros and cons of different database architectures for a high-traffic e-commerce platform?',
-    };
-    setQuery(prompts[prompt] || '');
+    setQuery(QUICK_PROMPTS[prompt] || '');
+  };
+
+  const handleModelKeyDown = (e, modelId) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleModel(modelId);
+    }
   };
 
   const availableModels = models.filter(m => m.available);
@@ -65,7 +79,7 @@ export default function QueryInput({ models, onSubmit, disabled }) {
           {/* Quick Prompts */}
           <div className="flex gap-2 mt-3">
             <span className="text-xs text-gray-400 self-center mr-1">Quick prompts:</span>
-            {quickPrompts.map(prompt => (
+            {Object.keys(QUICK_PROMPTS).map(prompt => (
               <button
                 key={prompt}
                 type="button"
@@ -100,14 +114,20 @@ export default function QueryInput({ models, onSubmit, disabled }) {
                   <div
                     key={model.id}
                     onClick={() => !disabled && toggleModel(model.id)}
+                    onKeyDown={(e) => !disabled && handleModelKeyDown(e, model.id)}
+                    role="checkbox"
+                    aria-checked={isSelected}
+                    tabIndex={disabled ? -1 : 0}
                     className={`model-card ${isSelected ? 'model-card-selected' : ''}`}
                   >
                     <div className="flex items-start space-x-3">
                       <input
                         type="checkbox"
                         checked={isSelected}
-                        onChange={() => {}}
+                        onChange={() => toggleModel(model.id)}
                         disabled={disabled}
+                        tabIndex={-1}
+                        aria-hidden="true"
                         className="mt-1 rounded text-blue-600 focus:ring-blue-500 bg-transparent border-gray-600"
                       />
                       <div className="flex-1 min-w-0">
@@ -115,14 +135,7 @@ export default function QueryInput({ models, onSubmit, disabled }) {
                           {model.name}
                         </div>
                         <div className="text-xs text-gray-400 mt-1">
-                          {model.id.includes('gpt') ? 'OpenAI Flagship' :
-                           model.id.includes('claude') ? 'Anthropic Flagship' :
-                           model.id.includes('gemini') ? 'Google Flagship' :
-                           model.id.includes('llama') ? 'Meta Flagship' :
-                           model.id.includes('mistral') ? 'Mistral AI Flagship' :
-                           model.id.includes('deepseek') ? 'DeepSeek Reasoning' :
-                           model.id.includes('grok') ? 'xAI Flagship' :
-                           'AI Model'}
+                          {getModelProviderLabel(model.id)}
                         </div>
                       </div>
                     </div>

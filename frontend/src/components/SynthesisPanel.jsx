@@ -84,7 +84,7 @@ export default function SynthesisPanel({ synthesis }) {
           Chairman's Synthesis
         </h4>
         <div className="bg-purple-900/20 border-l-4 border-purple-500 p-4 rounded">
-          <div className="text-gray-300 max-w-none text-sm whitespace-pre-wrap leading-relaxed">
+          <div className="prose prose-invert prose-sm max-w-none">
             {synthesis.text}
           </div>
         </div>
