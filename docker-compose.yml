@@ -5,6 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: llm-council-app
+    user: "1000:1000"
     ports:
       - "8000:8000"
     environment:
