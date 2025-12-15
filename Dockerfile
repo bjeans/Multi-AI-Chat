@@ -30,24 +30,28 @@ LABEL description="Multi-AI debate platform using LLM council for synthesized re
 LABEL org.opencontainers.image.source="https://github.com/bjeans/Multi-AI-Chat"
 LABEL org.opencontainers.image.licenses="MIT"
 
+# Create non-root user for security
+RUN adduser -D -u 1000 appuser && \
+    mkdir -p /app /app/data && \
+    chown -R appuser:appuser /app
+
 WORKDIR /app
 
 # Copy backend requirements
-COPY backend/requirements.txt ./
+COPY --chown=appuser:appuser backend/requirements.txt ./
 
-# Upgrade pip to 25.3+ (mitigates CVE-2025-8869: pip tarfile link following vulnerability)
-# Install Python dependencies
+# Upgrade pip to 25.3+ and install Python dependencies (mitigates CVE-2025-8869)
 RUN pip install --no-cache-dir --upgrade "pip>=25.3" && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copy backend code
-COPY backend/ ./
+COPY --chown=appuser:appuser backend/ ./
 
 # Copy built frontend from stage 1
-COPY --from=frontend-builder /frontend/dist ./static
+COPY --chown=appuser:appuser --from=frontend-builder /frontend/dist ./static
 
-# Create directory for database
-RUN mkdir -p /app/data
+# Switch to non-root user
+USER appuser
 
 # Expose port
 EXPOSE 8000
