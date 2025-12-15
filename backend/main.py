@@ -44,7 +44,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
+# Include routers - these must be registered BEFORE catch-all routes
+# FastAPI matches specific routes before catch-all patterns
 app.include_router(council.router)
 app.include_router(history.router)
 app.include_router(config.router)
@@ -57,9 +58,11 @@ async def health_check():
 
 
 # Serve static files for production (when running in Docker)
+# This section handles serving the built React frontend
 static_dir = Path(__file__).parent / "static"
 if static_dir.exists():
-    # Mount static files
+    # Mount static assets (CSS, JS, images)
+    # Note: Vite outputs assets to dist/assets/ by default
     app.mount("/assets", StaticFiles(directory=str(static_dir / "assets")), name="assets")
 
     @app.get("/")
@@ -69,15 +72,28 @@ if static_dir.exists():
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
-        """Serve SPA - return index.html for all non-API routes"""
-        # Don't intercept API routes
-        if full_path.startswith("api/") or full_path.startswith("health"):
-            return {"error": "Not found"}
+        """
+        Serve SPA - handles all non-API routes for client-side routing.
 
-        # Try to serve the file if it exists
-        file_path = static_dir / full_path
-        if file_path.is_file():
-            return FileResponse(str(file_path))
+        Note: API routes (/api/*, /health) are handled by routers registered above.
+        FastAPI matches specific routes before this catch-all pattern.
+        """
+        # Prevent path traversal attacks (e.g., "../../../etc/passwd")
+        try:
+            # Resolve the full path and ensure it's within static_dir
+            file_path = (static_dir / full_path).resolve()
+
+            # Security check: ensure resolved path is still within static_dir
+            if not str(file_path).startswith(str(static_dir.resolve())):
+                # Path traversal attempt detected
+                return FileResponse(str(static_dir / "index.html"))
+
+            # If file exists and is within static_dir, serve it
+            if file_path.is_file():
+                return FileResponse(str(file_path))
+        except (ValueError, OSError):
+            # Handle invalid paths
+            pass
 
         # Otherwise return index.html for client-side routing
         return FileResponse(str(static_dir / "index.html"))

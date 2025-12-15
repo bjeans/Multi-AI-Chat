@@ -4,10 +4,11 @@ FROM node:20-alpine AS frontend-builder
 
 WORKDIR /frontend
 
-# Copy frontend package files
-COPY frontend/package*.json ./
+# Copy frontend package files explicitly
+# npm ci requires both package.json and package-lock.json
+COPY frontend/package.json frontend/package-lock.json ./
 
-# Install dependencies
+# Install dependencies with clean install (faster, more reliable for CI/CD)
 RUN npm ci
 
 # Copy frontend source

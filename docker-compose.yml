@@ -11,13 +11,16 @@ services:
     environment:
       # LiteLLM Proxy Configuration
       - LITELLM_PROXY_URL=${LITELLM_PROXY_URL:-http://host.docker.internal:4000}
-      - LITELLM_API_KEY=${LITELLM_API_KEY:-your-api-key-here}
+      - LITELLM_API_KEY=${LITELLM_API_KEY}
 
       # Database Configuration
       - DATABASE_URL=sqlite+aiosqlite:///./data/database.db
 
-      # CORS Configuration (allow all for containerized deployment)
-      - CORS_ORIGINS=*
+      # CORS Configuration
+      # For development: use * or http://localhost:8000
+      # For production: MUST specify exact domain(s) to prevent CSRF attacks
+      # Example: CORS_ORIGINS=https://yourdomain.com,https://app.yourdomain.com
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:8000}
     volumes:
       # Persist database outside container
       - ./data:/app/data
