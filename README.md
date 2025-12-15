@@ -33,6 +33,27 @@ Inspired by [Satya Nadella's demonstration](https://www.youtube.com/watch?v=SEZA
 - LiteLLM proxy running (default: `http://localhost:4000`)
 - Ollama (optional, for local models)
 
+## Deployment Options
+
+### Option 1: Docker (Recommended for Production)
+
+The easiest way to run the application is using Docker:
+
+```bash
+# 1. Create .env file with your LiteLLM configuration
+# See .env.docker.example for reference
+
+# 2. Build and run
+docker-compose up -d
+
+# 3. Access the application
+# Open http://localhost:8000
+```
+
+For detailed Docker deployment instructions, see [DOCKER.md](DOCKER.md).
+
+### Option 2: Local Development Setup
+
 ## Quick Start
 
 ### 1. Backend Setup
@@ -173,7 +194,6 @@ npm run build
 - **Semantic Analysis**: Advanced consensus/debate detection
 - **Export Options**: JSON, Markdown, PDF exports
 - **User Authentication**: Multi-user support
-- **Docker Deployment**: Containerized deployment
 
 ## License
 

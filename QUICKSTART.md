@@ -14,14 +14,31 @@ All components have been implemented and are ready to use:
 ## Prerequisites Checklist
 
 Before starting, ensure you have:
-- [x] Python 3.10+ installed
-- [x] Node.js 18+ installed
+- [x] Python 3.10+ installed (not required for Docker)
+- [x] Node.js 18+ installed (not required for Docker)
 - [x] LiteLLM proxy running (default: `http://localhost:4000`)
 - [ ] At least 2 models available in your LiteLLM proxy
 
 ## Quick Start (First Time Setup)
 
-### Option 1: Using the Setup Scripts (Recommended)
+### Option 1: Docker Deployment (Easiest)
+
+If you have Docker installed, this is the fastest way to get started:
+
+```bash
+# 1. Create .env file (copy from .env.docker.example)
+cp .env.docker.example .env
+# Edit .env with your LiteLLM proxy URL and API key
+
+# 2. Build and run
+docker-compose up -d
+
+# 3. Access at http://localhost:8000
+```
+
+See [DOCKER.md](DOCKER.md) for detailed Docker deployment instructions.
+
+### Option 2: Using the Setup Scripts (For Local Development)
 
 ```bash
 # Setup backend (creates venv and installs dependencies)
@@ -31,7 +48,7 @@ Before starting, ensure you have:
 ./setup-frontend.sh
 ```
 
-### Option 2: Manual Setup
+### Option 3: Manual Setup
 
 #### Backend
 ```bash
@@ -282,6 +299,5 @@ Future enhancements:
 - 🔜 Semantic analysis for consensus
 - 🔜 Model weighting and confidence scores
 - 🔜 User authentication
-- 🔜 Docker deployment
 
 Enjoy your LLM Council! 🎉
