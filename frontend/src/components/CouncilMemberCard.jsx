@@ -1,3 +1,5 @@
+import ReactMarkdown from 'react-markdown';
+
 export default function CouncilMemberCard({ modelId, response, isChairman }) {
   const getStatusColor = () => {
     switch (response.status) {
@@ -52,7 +54,7 @@ export default function CouncilMemberCard({ modelId, response, isChairman }) {
           <p className="text-red-400">{response.error}</p>
         ) : response.text ? (
           <div className="prose prose-invert prose-sm max-w-none">
-            {response.text}
+            <ReactMarkdown>{response.text}</ReactMarkdown>
             {response.status === 'streaming' && (
               <span className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse"></span>
             )}

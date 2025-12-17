@@ -1,3 +1,5 @@
+import ReactMarkdown from 'react-markdown';
+
 export default function SynthesisPanel({ synthesis }) {
   if (!synthesis) {
     return (
@@ -47,7 +49,9 @@ export default function SynthesisPanel({ synthesis }) {
                 key={idx}
                 className="bg-green-900/20 border-l-4 border-green-500 p-3 rounded"
               >
-                <p className="text-sm text-gray-300">{item}</p>
+                <div className="text-sm text-gray-300 prose prose-invert prose-sm max-w-none">
+                  <ReactMarkdown>{item}</ReactMarkdown>
+                </div>
               </li>
             ))}
           </ul>
@@ -66,11 +70,13 @@ export default function SynthesisPanel({ synthesis }) {
                 key={idx}
                 className="bg-orange-900/20 border-l-4 border-orange-500 p-3 rounded"
               >
-                <p className="font-medium text-sm mb-1 text-gray-200">{debate.topic}</p>
+                <div className="font-medium text-sm mb-1 text-gray-200 prose prose-invert prose-sm max-w-none">
+                  <ReactMarkdown>{debate.topic}</ReactMarkdown>
+                </div>
                 {debate.positions && (
-                  <p className="text-sm text-gray-300">
-                    {debate.positions}
-                  </p>
+                  <div className="text-sm text-gray-300 prose prose-invert prose-sm max-w-none">
+                    <ReactMarkdown>{debate.positions}</ReactMarkdown>
+                  </div>
                 )}
               </li>
             ))}
@@ -85,7 +91,7 @@ export default function SynthesisPanel({ synthesis }) {
         </h4>
         <div className="bg-purple-900/20 border-l-4 border-purple-500 p-4 rounded">
           <div className="prose prose-invert prose-sm max-w-none">
-            {synthesis.text}
+            <ReactMarkdown>{synthesis.text}</ReactMarkdown>
           </div>
         </div>
       </div>
