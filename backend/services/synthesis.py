@@ -115,8 +115,8 @@ SYNTHESIS:
                     else:
                         debates.append({"topic": item, "positions": ""})
 
-            # Collect synthesis section lines (preserve original line for markdown formatting)
-            elif current_section == "synthesis" and line_stripped:
+            # Collect synthesis section lines (preserve original line for markdown formatting, including blank lines)
+            elif current_section == "synthesis":
                 synthesis_lines.append(line)
 
         # Join synthesis lines, preserving formatting
