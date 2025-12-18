@@ -23,16 +23,16 @@ class SynthesisService:
 
         # Get chairman's synthesis
         messages = [{"role": "user", "content": synthesis_prompt}]
-        synthesis_text = await self.client.get_chat_completion(
+        full_synthesis_text = await self.client.get_chat_completion(
             model_id=chairman_model,
             messages=messages,
             temperature=0.3,  # Lower temperature for more focused synthesis
         )
 
-        # Parse synthesis to extract consensus and debates
-        consensus_items, debates = self._parse_synthesis(synthesis_text)
+        # Parse synthesis to extract consensus, debates, and synthesis-only text
+        consensus_items, debates, synthesis_only_text = self._parse_synthesis(full_synthesis_text)
 
-        return consensus_items, debates, synthesis_text
+        return consensus_items, debates, synthesis_only_text
 
     def _build_synthesis_prompt(self, query: str, responses: Dict[str, str]) -> str:
         """Build the prompt for chairman synthesis"""
@@ -72,40 +72,41 @@ SYNTHESIS:
 """
         return prompt
 
-    def _parse_synthesis(self, synthesis_text: str) -> Tuple[List[str], List[dict]]:
+    def _parse_synthesis(self, synthesis_text: str) -> Tuple[List[str], List[dict], str]:
         """
-        Parse synthesis text to extract consensus items and debates
-        Returns: (consensus_items, debates)
+        Parse synthesis text to extract consensus items, debates, and synthesis-only text
+        Returns: (consensus_items, debates, synthesis_only_text)
         """
         consensus_items = []
         debates = []
+        synthesis_lines = []
 
         lines = synthesis_text.split("\n")
         current_section = None
 
         for line in lines:
-            line = line.strip()
+            line_stripped = line.strip()
 
             # Detect sections
-            if line.upper().startswith("CONSENSUS"):
+            if line_stripped.upper().startswith("CONSENSUS"):
                 current_section = "consensus"
                 continue
-            elif line.upper().startswith("DEBATES"):
+            elif line_stripped.upper().startswith("DEBATES"):
                 current_section = "debates"
                 continue
-            elif line.upper().startswith("SYNTHESIS"):
+            elif line_stripped.upper().startswith("SYNTHESIS"):
                 current_section = "synthesis"
                 continue
 
             # Parse consensus items
-            if current_section == "consensus" and line.startswith("•"):
-                item = line[1:].strip()
+            if current_section == "consensus" and line_stripped.startswith("•"):
+                item = line_stripped[1:].strip()
                 if item:
                     consensus_items.append(item)
 
             # Parse debate items
-            elif current_section == "debates" and line.startswith("•"):
-                item = line[1:].strip()
+            elif current_section == "debates" and line_stripped.startswith("•"):
+                item = line_stripped[1:].strip()
                 if item:
                     # Try to split debate into topic and positions
                     if ":" in item:
@@ -114,4 +115,11 @@ SYNTHESIS:
                     else:
                         debates.append({"topic": item, "positions": ""})
 
-        return consensus_items, debates
+            # Collect synthesis section lines (preserve original line for markdown formatting, including blank lines)
+            elif current_section == "synthesis":
+                synthesis_lines.append(line)
+
+        # Join synthesis lines, preserving formatting
+        synthesis_only_text = "\n".join(synthesis_lines).strip()
+
+        return consensus_items, debates, synthesis_only_text
