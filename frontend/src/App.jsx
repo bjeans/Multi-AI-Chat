@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLLMModels } from './hooks/useLLMModels';
+import { useMCPTools } from './hooks/useMCPTools';
 import { useStreamingDebate } from './hooks/useStreamingDebate';
 import QueryInput from './components/QueryInput';
 import CouncilMemberCard from './components/CouncilMemberCard';
@@ -8,6 +9,7 @@ import HistoryBrowser from './components/HistoryBrowser';
 
 export default function App() {
   const { models, loading: modelsLoading } = useLLMModels();
+  const { mcpTools, serverLabels, loading: mcpLoading } = useMCPTools();
   const {
     debating,
     decisionId,
@@ -21,11 +23,11 @@ export default function App() {
   const [selectedChairman, setSelectedChairman] = useState('');
   const [historicalData, setHistoricalData] = useState(null);
 
-  const handleStartDebate = (query, councilMembers, chairman) => {
+  const handleStartDebate = (query, councilMembers, chairman, mcpConfig = null) => {
     // Clear any historical data when starting a new debate
     setHistoricalData(null);
     setSelectedChairman(chairman);
-    startDebate(query, councilMembers, chairman);
+    startDebate(query, councilMembers, chairman, mcpConfig);
   };
 
   const handleSelectDecision = async (decisionId) => {
@@ -136,8 +138,10 @@ export default function App() {
         <div className="mb-6">
           <QueryInput
             models={models}
+            mcpTools={mcpTools}
+            serverLabels={serverLabels}
             onSubmit={handleStartDebate}
-            disabled={debating || modelsLoading}
+            disabled={debating || modelsLoading || mcpLoading}
           />
         </div>
 

@@ -14,11 +14,21 @@ async def council_debate(request: CouncilDebateRequest):
     """
     orchestrator = CouncilOrchestrator()
 
+    # Convert MCP config to dict if provided
+    mcp_config = None
+    if request.mcp_config:
+        mcp_config = {
+            "enabled": request.mcp_config.enabled,
+            "server_labels": request.mcp_config.server_labels,
+            "allowed_tools": request.mcp_config.allowed_tools,
+        }
+
     async def event_generator():
         async for event in orchestrator.run_council_debate(
             query=request.query,
             council_members=request.council_members,
             chairman=request.chairman,
+            mcp_config=mcp_config,
         ):
             yield event
 

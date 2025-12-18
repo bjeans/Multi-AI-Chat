@@ -1,7 +1,7 @@
 import asyncio
 import time
 import json
-from typing import List, Dict, AsyncGenerator
+from typing import List, Dict, AsyncGenerator, Optional, Any
 from services.litellm_client import LiteLLMClient
 from services.synthesis import SynthesisService
 from services.db import DecisionService, get_db
@@ -19,10 +19,17 @@ class CouncilOrchestrator:
         query: str,
         council_members: List[str],
         chairman: str,
+        mcp_config: Optional[Dict[str, Any]] = None,
     ) -> AsyncGenerator[str, None]:
         """
         Run a council debate with streaming responses
         Yields SSE events as JSON strings
+        
+        Args:
+            query: The question to debate
+            council_members: List of model IDs
+            chairman: Model ID for synthesis
+            mcp_config: Optional MCP tools configuration
         """
         # Validate minimum council size
         if len(council_members) < 2:
@@ -37,13 +44,16 @@ class CouncilOrchestrator:
             decision = await DecisionService.create_decision(db, query, chairman)
             decision_id = decision.id
 
-        # Yield debate start event
-        yield self._create_event("debate_start", {
+        # Yield debate start event with MCP info
+        debate_start_data = {
             "decision_id": decision_id,
             "query": query,
             "council_members": council_members,
             "chairman": chairman,
-        })
+        }
+        if mcp_config and mcp_config.get("enabled"):
+            debate_start_data["mcp_enabled"] = True
+        yield self._create_event("debate_start", debate_start_data)
 
         # Create a queue for streaming events
         event_queue = asyncio.Queue()
@@ -55,7 +65,7 @@ class CouncilOrchestrator:
         tasks = []
         for model_id in council_members:
             task = asyncio.create_task(
-                self._stream_model_response(model_id, query, decision_id, event_queue)
+                self._stream_model_response(model_id, query, decision_id, event_queue, mcp_config)
             )
             tasks.append((model_id, task))
 
@@ -134,10 +144,18 @@ class CouncilOrchestrator:
         query: str,
         decision_id: int,
         event_queue: asyncio.Queue,
+        mcp_config: Optional[Dict[str, Any]] = None,
     ):
         """
         Stream response from a single model in real-time
         Puts events into the queue as they happen
+        
+        Args:
+            model_id: The model to query
+            query: The user's question
+            decision_id: Database decision ID
+            event_queue: Queue for streaming events
+            mcp_config: Optional MCP tools configuration
         """
         start_time = time.time()
         full_response = ""
@@ -152,6 +170,7 @@ class CouncilOrchestrator:
             async for chunk in self.litellm_client.stream_chat_completion(
                 model_id=model_id,
                 messages=messages,
+                mcp_config=mcp_config,
             ):
                 full_response += chunk
                 token_count += 1

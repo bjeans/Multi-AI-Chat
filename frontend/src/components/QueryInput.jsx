@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 // Quick prompt examples - moved outside component for performance
 const QUICK_PROMPTS = {
@@ -19,15 +19,35 @@ const getModelProviderLabel = (modelId) => {
   return 'AI Model';
 };
 
-export default function QueryInput({ models, onSubmit, disabled }) {
+export default function QueryInput({ models, mcpTools = [], serverLabels = [], onSubmit, disabled }) {
   const [query, setQuery] = useState('');
   const [selectedModels, setSelectedModels] = useState([]);
   const [chairman, setChairman] = useState('');
+  
+  // MCP Tools state
+  const [mcpEnabled, setMcpEnabled] = useState(false);
+  const [selectedServerLabels, setSelectedServerLabels] = useState([]);
+  const [selectedTools, setSelectedTools] = useState([]);
+  const [showMcpPanel, setShowMcpPanel] = useState(false);
+
+  // Reset MCP selections when tools change
+  useEffect(() => {
+    if (mcpTools.length === 0) {
+      setMcpEnabled(false);
+      setSelectedServerLabels([]);
+      setSelectedTools([]);
+    }
+  }, [mcpTools]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (query.trim() && selectedModels.length >= 2 && chairman) {
-      onSubmit(query, selectedModels, chairman);
+      const mcpConfig = mcpEnabled && mcpTools.length > 0 ? {
+        enabled: true,
+        serverLabels: selectedServerLabels,
+        allowedTools: selectedTools,
+      } : null;
+      onSubmit(query, selectedModels, chairman, mcpConfig);
     }
   };
 
@@ -37,6 +57,26 @@ export default function QueryInput({ models, onSubmit, disabled }) {
         return prev.filter(id => id !== modelId);
       } else {
         return [...prev, modelId];
+      }
+    });
+  };
+
+  const toggleServerLabel = (label) => {
+    setSelectedServerLabels(prev => {
+      if (prev.includes(label)) {
+        return prev.filter(l => l !== label);
+      } else {
+        return [...prev, label];
+      }
+    });
+  };
+
+  const toggleTool = (toolName) => {
+    setSelectedTools(prev => {
+      if (prev.includes(toolName)) {
+        return prev.filter(t => t !== toolName);
+      } else {
+        return [...prev, toolName];
       }
     });
   };
@@ -168,6 +208,135 @@ export default function QueryInput({ models, onSubmit, disabled }) {
             })}
           </select>
         </div>
+
+        {/* MCP Tools Section */}
+        {mcpTools.length > 0 && (
+          <div className="border-t border-gray-700 pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={mcpEnabled}
+                    onChange={(e) => setMcpEnabled(e.target.checked)}
+                    disabled={disabled}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+                <span className="text-sm font-medium text-gray-300">
+                  Enable MCP Tools
+                </span>
+                <span className="text-xs text-gray-500">
+                  ({mcpTools.length} tools available)
+                </span>
+              </div>
+              {mcpEnabled && (
+                <button
+                  type="button"
+                  onClick={() => setShowMcpPanel(!showMcpPanel)}
+                  className="text-xs text-blue-400 hover:text-blue-300"
+                >
+                  {showMcpPanel ? 'Hide configuration' : 'Configure tools'}
+                </button>
+              )}
+            </div>
+
+            {/* MCP Configuration Panel */}
+            {mcpEnabled && showMcpPanel && (
+              <div className="bg-gray-800/50 rounded-lg p-4 space-y-4">
+                {/* Server Labels */}
+                {serverLabels.length > 0 && (
+                  <div>
+                    <label className="block text-xs font-medium text-gray-400 mb-2">
+                      MCP Servers (leave empty for all)
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {serverLabels.map(label => (
+                        <button
+                          key={label}
+                          type="button"
+                          onClick={() => toggleServerLabel(label)}
+                          disabled={disabled}
+                          className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                            selectedServerLabels.includes(label)
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Available Tools */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-2">
+                    Available Tools (leave empty for all)
+                  </label>
+                  <div className="max-h-48 overflow-y-auto space-y-2">
+                    {mcpTools
+                      .filter(tool => 
+                        selectedServerLabels.length === 0 || 
+                        selectedServerLabels.includes(tool.server_label)
+                      )
+                      .map(tool => (
+                        <div
+                          key={tool.name}
+                          className={`p-2 rounded-lg border cursor-pointer transition-colors ${
+                            selectedTools.includes(tool.name)
+                              ? 'border-blue-500 bg-blue-900/30'
+                              : 'border-gray-700 bg-gray-800/50 hover:border-gray-600'
+                          }`}
+                          onClick={() => !disabled && toggleTool(tool.name)}
+                        >
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedTools.includes(tool.name)}
+                              onChange={() => toggleTool(tool.name)}
+                              disabled={disabled}
+                              className="rounded text-blue-600 focus:ring-blue-500 bg-transparent border-gray-600"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-medium text-gray-200 truncate">
+                                {tool.name}
+                              </div>
+                              {tool.description && (
+                                <div className="text-xs text-gray-500 truncate">
+                                  {tool.description}
+                                </div>
+                              )}
+                            </div>
+                            {tool.server_label && (
+                              <span className="text-xs text-gray-500 bg-gray-700 px-2 py-0.5 rounded">
+                                {tool.server_label}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+
+                {/* Selection summary */}
+                <div className="text-xs text-gray-500 pt-2 border-t border-gray-700">
+                  {selectedServerLabels.length === 0 && selectedTools.length === 0 ? (
+                    <span>All MCP tools will be available to models</span>
+                  ) : (
+                    <span>
+                      {selectedServerLabels.length > 0 && `${selectedServerLabels.length} server(s) selected`}
+                      {selectedServerLabels.length > 0 && selectedTools.length > 0 && ', '}
+                      {selectedTools.length > 0 && `${selectedTools.length} tool(s) selected`}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Submit Button */}
         <button

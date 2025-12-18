@@ -1,12 +1,20 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime
+
+
+class MCPConfig(BaseModel):
+    """Configuration for MCP tools usage"""
+    enabled: bool = Field(default=False, description="Whether to enable MCP tools")
+    server_labels: List[str] = Field(default=[], description="Specific MCP server labels to use (empty = all)")
+    allowed_tools: List[str] = Field(default=[], description="Specific tool names to allow (empty = all)")
 
 
 class CouncilDebateRequest(BaseModel):
     query: str = Field(..., description="The question or decision to debate")
     council_members: List[str] = Field(..., min_length=2, description="List of model IDs to participate")
     chairman: str = Field(..., description="Model ID to act as chairman and synthesize")
+    mcp_config: Optional[MCPConfig] = Field(default=None, description="Optional MCP tools configuration")
 
 
 class ModelInfo(BaseModel):

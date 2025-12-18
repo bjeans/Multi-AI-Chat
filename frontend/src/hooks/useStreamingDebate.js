@@ -7,7 +7,7 @@ export function useStreamingDebate() {
   const [synthesis, setSynthesis] = useState(null);
   const [error, setError] = useState(null);
 
-  const startDebate = useCallback(async (query, councilMembers, chairman) => {
+  const startDebate = useCallback(async (query, councilMembers, chairman, mcpConfig = null) => {
     setDebating(true);
     setError(null);
     setModelResponses({});
@@ -28,16 +28,27 @@ export function useStreamingDebate() {
     setModelResponses(initialResponses);
 
     try {
+      const requestBody = {
+        query,
+        council_members: councilMembers,
+        chairman,
+      };
+
+      // Add MCP config if provided and enabled
+      if (mcpConfig && mcpConfig.enabled) {
+        requestBody.mcp_config = {
+          enabled: true,
+          server_labels: mcpConfig.serverLabels || [],
+          allowed_tools: mcpConfig.allowedTools || [],
+        };
+      }
+
       const response = await fetch('/api/council/debate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          query,
-          council_members: councilMembers,
-          chairman,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) throw new Error('Failed to start debate');
