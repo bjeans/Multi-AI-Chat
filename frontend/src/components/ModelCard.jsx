@@ -9,9 +9,18 @@ import {
 export function ModelCard({ model, isSelected, onSelect }) {
   const [showDetails, setShowDetails] = useState(false);
 
+  const handleKeyDown = (e) => {
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      onSelect();
+    }
+  };
+
   return (
     <div
       className={`model-card ${isSelected ? 'selected' : ''} ${getSizeClassName(model.size.size_tier)}`}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
     >
       <div className="model-main" onClick={onSelect}>
         <input
