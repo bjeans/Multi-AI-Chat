@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { ServerGroup } from './ServerGroup';
+import { SelectionAnalysis } from './SelectionAnalysis';
 
 // Quick prompt examples - moved outside component for performance
 const QUICK_PROMPTS = {
@@ -7,7 +9,7 @@ const QUICK_PROMPTS = {
   'Architecture': 'What are the pros and cons of different database architectures for a high-traffic e-commerce platform?',
 };
 
-// Helper function to get model provider label
+// Helper function to get model provider label (for legacy flat view)
 const getModelProviderLabel = (modelId) => {
   if (modelId.includes('gpt')) return 'OpenAI Flagship';
   if (modelId.includes('claude')) return 'Anthropic Flagship';
@@ -19,44 +21,63 @@ const getModelProviderLabel = (modelId) => {
   return 'AI Model';
 };
 
-export default function QueryInput({ models, onSubmit, disabled }) {
+export default function QueryInput({
+  models,
+  serverGroups = [],
+  selectedModels = [],
+  selectionAnalysis = null,
+  onModelSelect,
+  onSubmit,
+  disabled,
+  useServerGrouping = true
+}) {
   const [query, setQuery] = useState('');
-  const [selectedModels, setSelectedModels] = useState([]);
   const [chairman, setChairman] = useState('');
+
+  // For backward compatibility - local state if not using hook
+  const [localSelectedModels, setLocalSelectedModels] = useState([]);
+
+  // Use provided or local state
+  const activeSelectedModels = onModelSelect ? selectedModels : localSelectedModels;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (query.trim() && selectedModels.length >= 2 && chairman) {
-      onSubmit(query, selectedModels, chairman);
+    if (query.trim() && activeSelectedModels.length >= 2 && chairman) {
+      // Extract model display names for submission
+      const modelNames = activeSelectedModels.map(id => {
+        // id format is "model_name_host", so extract just the model name
+        return id.split('_').slice(0, -1).join('_');
+      });
+      onSubmit(query, modelNames, chairman.split('_').slice(0, -1).join('_'));
     }
   };
 
-  const toggleModel = (modelId) => {
-    setSelectedModels(prev => {
-      if (prev.includes(modelId)) {
-        return prev.filter(id => id !== modelId);
-      } else {
-        return [...prev, modelId];
-      }
-    });
+  const handleLocalModelSelect = (modelId, isSelected) => {
+    if (onModelSelect) {
+      onModelSelect(modelId, isSelected);
+    } else {
+      setLocalSelectedModels(prev => {
+        if (isSelected) {
+          return [...prev, modelId];
+        } else {
+          return prev.filter(id => id !== modelId);
+        }
+      });
+    }
   };
 
   const handleQuickPrompt = (prompt) => {
     setQuery(QUICK_PROMPTS[prompt] || '');
   };
 
-  const handleModelKeyDown = (e, modelId) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      toggleModel(modelId);
-    }
-  };
-
-  const availableModels = models.filter(m => m.available);
+  // Get all available models (flatten from serverGroups or use models)
+  const availableModels = useServerGrouping && serverGroups.length > 0
+    ? serverGroups.flatMap(group => group.models)
+    : models.filter(m => m.available);
 
   // Set default chairman to Claude Opus 4.5 if available
   const recommendedChairman = availableModels.find(m =>
-    m.id.includes('claude-opus-4') || m.name.includes('Claude Opus')
+    m.display_name?.includes('claude-opus-4') || m.name?.includes('Claude Opus')
   );
 
   return (
@@ -93,6 +114,11 @@ export default function QueryInput({ models, onSubmit, disabled }) {
           </div>
         </div>
 
+        {/* Selection Analysis */}
+        {selectionAnalysis && activeSelectedModels.length > 0 && (
+          <SelectionAnalysis analysis={selectionAnalysis} />
+        )}
+
         {/* Council Members */}
         <div>
           <div className="flex justify-between items-center mb-3">
@@ -100,50 +126,64 @@ export default function QueryInput({ models, onSubmit, disabled }) {
               Council Members
             </label>
             <span className="text-xs text-gray-400">
-              Select 2+ models for best results
+              Select 2+ models for best results ({activeSelectedModels.length} selected)
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {availableModels.length === 0 ? (
-              <p className="text-gray-500 col-span-full">No models available</p>
-            ) : (
-              availableModels.map(model => {
-                const isSelected = selectedModels.includes(model.id);
-                return (
-                  <div
-                    key={model.id}
-                    onClick={() => !disabled && toggleModel(model.id)}
-                    onKeyDown={(e) => !disabled && handleModelKeyDown(e, model.id)}
-                    role="checkbox"
-                    aria-checked={isSelected}
-                    tabIndex={disabled ? -1 : 0}
-                    className={`model-card ${isSelected ? 'model-card-selected' : ''}`}
-                  >
-                    <div className="flex items-start space-x-3">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => toggleModel(model.id)}
-                        disabled={disabled}
-                        tabIndex={-1}
-                        aria-hidden="true"
-                        className="mt-1 rounded text-blue-600 focus:ring-blue-500 bg-transparent border-gray-600"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-100 truncate">
-                          {model.name}
-                        </div>
-                        <div className="text-xs text-gray-400 mt-1">
-                          {getModelProviderLabel(model.id)}
+          {/* Server-grouped or flat layout */}
+          {useServerGrouping && serverGroups.length > 0 ? (
+            <div className="server-groups-container">
+              {serverGroups.map(group => (
+                <ServerGroup
+                  key={group.server.api_base}
+                  serverGroup={group}
+                  selectedModels={activeSelectedModels}
+                  onModelSelect={handleLocalModelSelect}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {availableModels.length === 0 ? (
+                <p className="text-gray-500 col-span-full">No models available</p>
+              ) : (
+                availableModels.map(model => {
+                  const modelId = model.id || model.name;
+                  const isSelected = activeSelectedModels.includes(modelId);
+                  return (
+                    <div
+                      key={modelId}
+                      onClick={() => !disabled && handleLocalModelSelect(modelId, !isSelected)}
+                      role="checkbox"
+                      aria-checked={isSelected}
+                      tabIndex={disabled ? -1 : 0}
+                      className={`model-card ${isSelected ? 'model-card-selected' : ''}`}
+                    >
+                      <div className="flex items-start space-x-3">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => handleLocalModelSelect(modelId, !isSelected)}
+                          disabled={disabled}
+                          tabIndex={-1}
+                          aria-hidden="true"
+                          className="mt-1 rounded text-blue-600 focus:ring-blue-500 bg-transparent border-gray-600"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-gray-100 truncate">
+                            {model.name || model.display_name}
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            {getModelProviderLabel(modelId)}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
+                  );
+                })
+              )}
+            </div>
+          )}
         </div>
 
         {/* Chairman Model */}
@@ -159,10 +199,12 @@ export default function QueryInput({ models, onSubmit, disabled }) {
           >
             <option value="">Select chairman...</option>
             {availableModels.map(model => {
-              const isRecommended = recommendedChairman && model.id === recommendedChairman.id;
+              const modelId = model.id || model.name;
+              const modelName = model.name || model.display_name;
+              const isRecommended = recommendedChairman && modelId === recommendedChairman.id;
               return (
-                <option key={model.id} value={model.id}>
-                  {model.name}{isRecommended ? ' (Recommended)' : ''}
+                <option key={modelId} value={modelId}>
+                  {modelName}{isRecommended ? ' (Recommended)' : ''}
                 </option>
               );
             })}
@@ -172,7 +214,7 @@ export default function QueryInput({ models, onSubmit, disabled }) {
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={disabled || !query.trim() || selectedModels.length < 2 || !chairman}
+          disabled={disabled || !query.trim() || activeSelectedModels.length < 2 || !chairman}
           className="btn-primary w-full"
         >
           {disabled ? 'Researching...' : 'Start Research'}

@@ -52,6 +52,34 @@ class LiteLLMClient:
             print(f"Error fetching models: {e}")
             return []
 
+    async def get_model_info(self) -> dict:
+        """Fetch detailed model info from /v1/model/info endpoint"""
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout, verify=False) as client:
+                response = await client.get(
+                    f"{self.base_url}/v1/model/info",
+                    headers=self._get_headers()
+                )
+                response.raise_for_status()
+                return response.json()
+        except Exception as e:
+            print(f"Error fetching model info: {e}")
+            return {"data": []}
+
+    async def get_health_status(self) -> dict:
+        """Fetch health status from /health/latest endpoint"""
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout, verify=False) as client:
+                response = await client.get(
+                    f"{self.base_url}/health/latest",
+                    headers=self._get_headers()
+                )
+                response.raise_for_status()
+                return response.json()
+        except Exception as e:
+            print(f"Error fetching health status: {e}")
+            return {"latest_health_checks": {}, "total_models": 0}
+
     async def test_model(self, model_id: str) -> bool:
         """Test if a model is available and responding"""
         try:
