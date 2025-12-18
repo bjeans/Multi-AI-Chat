@@ -28,6 +28,7 @@ export function ModelCard({ model, isSelected, onSelect }) {
           checked={isSelected}
           onChange={onSelect}
           onClick={(e) => e.stopPropagation()}
+          tabIndex={-1}
         />
 
         <div className="model-info">
