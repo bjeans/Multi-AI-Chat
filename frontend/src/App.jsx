@@ -7,7 +7,14 @@ import SynthesisPanel from './components/SynthesisPanel';
 import HistoryBrowser from './components/HistoryBrowser';
 
 export default function App() {
-  const { models, loading: modelsLoading } = useLLMModels();
+  const {
+    models,
+    serverGroups,
+    selectedModels,
+    selectionAnalysis,
+    loading: modelsLoading,
+    handleModelSelect,
+  } = useLLMModels();
   const {
     debating,
     decisionId,
@@ -136,8 +143,13 @@ export default function App() {
         <div className="mb-6">
           <QueryInput
             models={models}
+            serverGroups={serverGroups}
+            selectedModels={selectedModels}
+            selectionAnalysis={selectionAnalysis}
+            onModelSelect={handleModelSelect}
             onSubmit={handleStartDebate}
             disabled={debating || modelsLoading}
+            useServerGrouping={true}
           />
         </div>
 

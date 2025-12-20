@@ -34,6 +34,32 @@ Backend runs on port 8000, frontend on port 5173. If port 8000 is in use:
 lsof -ti:8000 | xargs kill -9    # Kill process on port 8000
 ```
 
+## Code Validation
+
+**IMPORTANT**: After making code changes, always validate that the Docker image still builds successfully:
+
+```bash
+docker compose build
+```
+
+This command:
+- Validates frontend code compiles (Vite build)
+- Validates backend dependencies install correctly
+- Ensures production build artifacts are created
+- Catches build-time errors before deployment
+
+Common build failures:
+- CSS class name errors (invalid Tailwind utilities)
+- TypeScript/JavaScript import errors
+- Python dependency conflicts
+- Missing environment variables in build process
+
+If the build fails, fix the errors before committing. A successful build should complete with:
+```
+✓ built in XXXms
+bjeans/multi-ai-chat:latest  Built
+```
+
 ## Architecture
 
 ### Backend Request Flow
