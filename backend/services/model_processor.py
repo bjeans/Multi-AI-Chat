@@ -2,8 +2,8 @@
 Model processing service for organizing and analyzing LiteLLM models
 """
 import re
-from typing import Dict, List, Tuple
-from datetime import datetime
+from typing import List
+from urllib.parse import urlparse
 
 from models.schemas import (
     ModelInfoDetailed,
@@ -18,7 +18,27 @@ from models.schemas import (
 from services.litellm_client import LiteLLMClient
 
 
-def parse_model_name(model_name: str, litellm_model: str) -> Dict[str, any]:
+def extract_hostname(api_base: str) -> str:
+    """
+    Safely extract hostname from api_base URL
+
+    Args:
+        api_base: URL string (e.g., "http://192.168.1.100:11434")
+
+    Returns:
+        hostname (e.g., "192.168.1.100") or full api_base if parsing fails
+    """
+    try:
+        parsed = urlparse(api_base)
+        # hostname property handles IPv4, IPv6, and regular hostnames
+        # Falls back to netloc.split(':')[0] for edge cases
+        return parsed.hostname or parsed.netloc.split(':')[0]
+    except Exception:
+        # Fallback to api_base if parsing fails
+        return api_base
+
+
+def parse_model_name(model_name: str, litellm_model: str) -> dict:
     """
     Parse model_name and litellm_params.model to extract metadata
 
@@ -163,7 +183,7 @@ async def process_models_with_health(raw_data: dict) -> List[ServerGroup]:
 
         # Initialize server if first time seeing it
         if api_base not in server_map:
-            host = api_base.split("//")[1].split(":")[0]
+            host = extract_hostname(api_base)
             server_map[api_base] = {
                 "server_info": OllamaServerInfo(
                     api_base=api_base,
@@ -195,7 +215,7 @@ async def process_models_with_health(raw_data: dict) -> List[ServerGroup]:
             )
 
         # Extract host from api_base
-        host = api_base.split("//")[1].split(":")[0]
+        host = extract_hostname(api_base)
 
         # Infer model family from base_model
         base_parts = parsed["base_model"].split(".")[0].split("-")[0]
@@ -308,7 +328,7 @@ async def analyze_selection(selected_model_ids: List[str], all_server_groups: Li
             warnings.append(SelectionWarning(
                 severity="high",
                 server=api_base,
-                message=f"⚠️ {len(large_models)} large models selected on {api_base.split('//')[1]}. Expect significant delays during model swapping.",
+                message=f"⚠️ {len(large_models)} large models selected on {extract_hostname(api_base)}. Expect significant delays during model swapping.",
                 models=[m.display_name for m in large_models],
                 estimated_total_memory=f"{total_memory}GB"
             ))
@@ -329,7 +349,7 @@ async def analyze_selection(selected_model_ids: List[str], all_server_groups: Li
             warnings.append(SelectionWarning(
                 severity="medium",
                 server=api_base,
-                message=f"⚠️ Large model + medium model on {api_base.split('//')[1]}. May cause delays.",
+                message=f"⚠️ Large model + medium model on {extract_hostname(api_base)}. May cause delays.",
                 estimated_total_memory=f"{total_memory}GB"
             ))
 
@@ -338,7 +358,7 @@ async def analyze_selection(selected_model_ids: List[str], all_server_groups: Li
             warnings.append(SelectionWarning(
                 severity="info",
                 server=api_base,
-                message=f"ℹ️ Selected models require ~{total_memory}GB on {api_base.split('//')[1]}"
+                message=f"ℹ️ Selected models require ~{total_memory}GB on {extract_hostname(api_base)}"
             ))
 
     # Calculate diversity score

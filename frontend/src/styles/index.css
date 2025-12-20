@@ -47,7 +47,7 @@
   }
 
   .server-header {
-    @apply bg-[#1a2332] p-4 cursor-pointer hover:bg-[#1f2938] transition-colors;
+    @apply w-full text-left bg-[#1a2332] p-4 cursor-pointer hover:bg-[#1f2938] transition-colors border-0;
   }
 
   .server-title {

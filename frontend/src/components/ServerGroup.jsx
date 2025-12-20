@@ -13,11 +13,17 @@ export function ServerGroup({
   // Calculate server usage stats
   const stats = getServerStats(serverGroup, selectedModels);
 
+  // Create unique ID for aria-controls
+  const contentId = `server-content-${server.api_base.replace(/[^a-zA-Z0-9]/g, '-')}`;
+
   return (
     <div className="server-group">
-      <div
+      <button
+        type="button"
         className="server-header"
         onClick={() => setExpanded(!expanded)}
+        aria-expanded={expanded}
+        aria-controls={contentId}
       >
         <div className="server-title">
           <span className="server-icon">🖥️</span>
@@ -36,8 +42,9 @@ export function ServerGroup({
           )}
           <span className={`expand-icon ${expanded ? 'expanded' : ''}`}>▼</span>
         </div>
-      </div>
+      </button>
 
+      <div id={contentId}>
       {/* Resource warnings for this server */}
       {expanded && stats.selectedCount > 0 && (
         <div className="server-usage">
@@ -79,6 +86,7 @@ export function ServerGroup({
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }

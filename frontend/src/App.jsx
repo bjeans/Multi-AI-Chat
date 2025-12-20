@@ -14,7 +14,6 @@ export default function App() {
     selectionAnalysis,
     loading: modelsLoading,
     handleModelSelect,
-    clearSelection
   } = useLLMModels();
   const {
     debating,

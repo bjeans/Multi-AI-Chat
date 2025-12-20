@@ -6,6 +6,22 @@ import {
   getSizeClassName
 } from '../utils/modelSelection';
 
+/**
+ * Safely extract hostname from URL string
+ * @param {string} url - URL to parse (e.g., "http://192.168.1.100:11434")
+ * @returns {string} hostname or full URL if parsing fails
+ */
+function extractHostname(url) {
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname;
+  } catch {
+    // Fallback: try to extract after // and before :
+    const match = url.match(/\/\/([^:\/]+)/);
+    return match ? match[1] : url;
+  }
+}
+
 export function ModelCard({ model, isSelected, onSelect }) {
   const [showDetails, setShowDetails] = useState(false);
 
@@ -69,7 +85,7 @@ export function ModelCard({ model, isSelected, onSelect }) {
           {/* Better server recommendation */}
           {model.is_duplicate && model.better_server && (
             <div className="recommendation">
-              💡 Also on {model.better_server.split('//')[1]} (better performance)
+              💡 Also on {extractHostname(model.better_server)} (better performance)
             </div>
           )}
         </div>
@@ -77,11 +93,14 @@ export function ModelCard({ model, isSelected, onSelect }) {
         {/* Details toggle */}
         {model.health && (
           <button
+            type="button"
             className="details-toggle"
             onClick={(e) => {
               e.stopPropagation();
               setShowDetails(!showDetails);
             }}
+            aria-expanded={showDetails}
+            aria-label={showDetails ? "Hide model details" : "Show model details"}
           >
             {showDetails ? '▲' : '▼'}
           </button>

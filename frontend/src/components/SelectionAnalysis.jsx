@@ -1,5 +1,21 @@
 import { getSeverityClassName } from '../utils/modelSelection';
 
+/**
+ * Safely extract hostname from URL string
+ * @param {string} url - URL to parse (e.g., "http://192.168.1.100:11434")
+ * @returns {string} hostname or full URL if parsing fails
+ */
+function extractHostname(url) {
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname;
+  } catch {
+    // Fallback: try to extract after // and before :
+    const match = url.match(/\/\/([^:\/]+)/);
+    return match ? match[1] : url;
+  }
+}
+
 export function SelectionAnalysis({ analysis }) {
   if (!analysis || analysis.total_models_selected === 0) {
     return null;
@@ -62,8 +78,8 @@ export function SelectionAnalysis({ analysis }) {
               <div key={idx} className="recommendation-item">
                 <div className="recommendation-action">
                   Move <strong>{rec.model}</strong> from{' '}
-                  {rec.from_server.split('//')[1]} to{' '}
-                  {rec.to_server.split('//')[1]}
+                  {extractHostname(rec.from_server)} to{' '}
+                  {extractHostname(rec.to_server)}
                 </div>
                 <div className="recommendation-reason">{rec.reason}</div>
               </div>

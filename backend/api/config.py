@@ -1,6 +1,9 @@
 from fastapi import APIRouter
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
+import asyncio
+import time
+import os
 
 from models.schemas import ModelInfo, ServerGroup, SelectionAnalysis
 from services.litellm_client import LiteLLMClient
@@ -8,8 +11,11 @@ from services.model_processor import process_models_with_health, analyze_selecti
 
 router = APIRouter(prefix="/api/config", tags=["config"])
 
-# Global cache for server groups (refresh periodically)
-_server_groups_cache = None
+# Global cache for server groups with expiration
+_server_groups_cache: Optional[List[ServerGroup]] = None
+_cache_timestamp: Optional[float] = None
+_cache_lock = asyncio.Lock()
+CACHE_TTL_SECONDS = int(os.getenv("CACHE_TTL_SECONDS", "120"))  # Default 2 minutes
 
 
 class TestModelRequest(BaseModel):
@@ -50,19 +56,28 @@ async def get_models_by_server():
     """
     Get models grouped by Ollama server with health status and size info
     """
-    global _server_groups_cache
+    global _server_groups_cache, _cache_timestamp
 
-    # Use cache if available (TODO: add expiration logic)
-    if _server_groups_cache is not None:
-        return _server_groups_cache
+    # Use lock to prevent race conditions on cache access
+    async with _cache_lock:
+        now = time.time()
 
-    client = LiteLLMClient()
-    raw_data = await client.get_model_info()
+        # Return cached data if valid and not expired
+        if _server_groups_cache is not None and _cache_timestamp is not None:
+            if now - _cache_timestamp < CACHE_TTL_SECONDS:
+                return _server_groups_cache
 
-    server_groups = await process_models_with_health(raw_data)
-    _server_groups_cache = server_groups
+        # Fetch fresh data
+        client = LiteLLMClient()
+        raw_data = await client.get_model_info()
 
-    return server_groups
+        server_groups = await process_models_with_health(raw_data)
+
+        # Update cache with timestamp
+        _server_groups_cache = server_groups
+        _cache_timestamp = now
+
+        return server_groups
 
 
 class AnalyzeSelectionRequest(BaseModel):
