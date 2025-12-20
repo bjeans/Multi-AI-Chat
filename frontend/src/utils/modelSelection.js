@@ -2,6 +2,22 @@
  * Utility functions for model selection and analysis
  */
 
+/**
+ * Safely extract hostname from URL string
+ * @param {string} url - URL to parse (e.g., "http://192.168.1.100:11434")
+ * @returns {string} hostname or full URL if parsing fails
+ */
+export function extractHostname(url) {
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname;
+  } catch {
+    // Fallback: try to extract after // and before :
+    const match = url.match(/\/\/([^:\/]+)/);
+    return match ? match[1] : url;
+  }
+}
+
 export function findModelById(modelId, serverGroups) {
   for (const group of serverGroups) {
     const model = group.models.find(m => m.id === modelId);

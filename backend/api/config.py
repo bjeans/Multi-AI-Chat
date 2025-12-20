@@ -4,10 +4,13 @@ from pydantic import BaseModel
 import asyncio
 import time
 import os
+import logging
 
 from models.schemas import ModelInfo, ServerGroup, SelectionAnalysis
 from services.litellm_client import LiteLLMClient
 from services.model_processor import process_models_with_health, analyze_selection
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/config", tags=["config"])
 
@@ -15,7 +18,23 @@ router = APIRouter(prefix="/api/config", tags=["config"])
 _server_groups_cache: Optional[List[ServerGroup]] = None
 _cache_timestamp: Optional[float] = None
 _cache_lock = asyncio.Lock()
-CACHE_TTL_SECONDS = int(os.getenv("CACHE_TTL_SECONDS", "120"))  # Default 2 minutes
+
+# Parse cache TTL with error handling
+def _get_cache_ttl() -> int:
+    """Get cache TTL from environment with validation"""
+    default_ttl = 120
+    try:
+        ttl_str = os.getenv("CACHE_TTL_SECONDS", str(default_ttl))
+        ttl = int(ttl_str)
+        if ttl <= 0:
+            logger.warning(f"Invalid CACHE_TTL_SECONDS={ttl_str} (must be > 0), using default {default_ttl}")
+            return default_ttl
+        return ttl
+    except ValueError:
+        logger.warning(f"Invalid CACHE_TTL_SECONDS={os.getenv('CACHE_TTL_SECONDS')} (must be integer), using default {default_ttl}")
+        return default_ttl
+
+CACHE_TTL_SECONDS = _get_cache_ttl()
 
 
 class TestModelRequest(BaseModel):
