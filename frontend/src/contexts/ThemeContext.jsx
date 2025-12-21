@@ -7,7 +7,7 @@ function getInitialTheme() {
 
   try {
     const savedTheme = window.localStorage.getItem('theme');
-    if (savedTheme) {
+    if (savedTheme === 'light' || savedTheme === 'dark') {
       return savedTheme;
     }
   } catch (error) {
