@@ -53,7 +53,7 @@ export default function CouncilMemberCard({ modelId, response, isChairman }) {
         {response.status === 'error' ? (
           <p className="text-red-600 dark:text-red-400">{response.error}</p>
         ) : response.text ? (
-          <div className="prose dark:prose-invert prose-sm max-w-none text-gray-900 dark:text-gray-100">
+          <div className="prose dark:prose-invert prose-sm max-w-none">
             <ReactMarkdown>{response.text}</ReactMarkdown>
             {response.status === 'streaming' && (
               <span className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse"></span>

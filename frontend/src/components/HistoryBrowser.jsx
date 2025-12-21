@@ -76,7 +76,7 @@ export default function HistoryBrowser({ onSelectDecision }) {
                     <span>{decision.response_count} responses</span>
                   </div>
                 </div>
-                <span className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap ml-2">
+                <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap ml-2">
                   {formatDate(decision.created_at)}
                 </span>
               </div>

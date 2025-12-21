@@ -49,7 +49,7 @@ export default function SynthesisPanel({ synthesis }) {
                 key={idx}
                 className="bg-green-100 dark:bg-green-900/20 border-l-4 border-green-500 p-3 rounded"
               >
-                <div className="text-sm text-gray-700 dark:text-gray-300 prose dark:prose-invert prose-sm max-w-none">
+                <div className="text-sm prose dark:prose-invert prose-sm max-w-none">
                   <ReactMarkdown>{item}</ReactMarkdown>
                 </div>
               </li>
@@ -70,11 +70,11 @@ export default function SynthesisPanel({ synthesis }) {
                 key={idx}
                 className="bg-orange-100 dark:bg-orange-900/20 border-l-4 border-orange-500 p-3 rounded"
               >
-                <div className="font-medium text-sm mb-1 text-gray-800 dark:text-gray-200 prose dark:prose-invert prose-sm max-w-none">
+                <div className="font-medium text-sm mb-1 prose dark:prose-invert prose-sm max-w-none">
                   <ReactMarkdown>{debate.topic}</ReactMarkdown>
                 </div>
                 {debate.positions && (
-                  <div className="text-sm text-gray-700 dark:text-gray-300 prose dark:prose-invert prose-sm max-w-none">
+                  <div className="text-sm prose dark:prose-invert prose-sm max-w-none">
                     <ReactMarkdown>{debate.positions}</ReactMarkdown>
                   </div>
                 )}
@@ -90,7 +90,7 @@ export default function SynthesisPanel({ synthesis }) {
           Chairman's Synthesis
         </h4>
         <div className="bg-purple-100 dark:bg-purple-900/20 border-l-4 border-purple-500 p-4 rounded">
-          <div className="prose dark:prose-invert prose-sm max-w-none text-gray-900 dark:text-gray-100">
+          <div className="prose dark:prose-invert prose-sm max-w-none">
             <ReactMarkdown>{synthesis.text}</ReactMarkdown>
           </div>
         </div>
