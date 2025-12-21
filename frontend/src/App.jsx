@@ -5,6 +5,7 @@ import QueryInput from './components/QueryInput';
 import CouncilMemberCard from './components/CouncilMemberCard';
 import SynthesisPanel from './components/SynthesisPanel';
 import HistoryBrowser from './components/HistoryBrowser';
+import ThemeToggle from './components/ThemeToggle';
 
 export default function App() {
   const {
@@ -83,25 +84,28 @@ export default function App() {
   const councilMembersList = Object.keys(displayResponses);
 
   return (
-    <div className="min-h-screen bg-[#0a0e1a]">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0a0e1a] transition-colors duration-200">
       {/* Header */}
-      <header className="bg-[#1a2332] shadow-lg border-b border-gray-700">
+      <header className="bg-white dark:bg-[#1a2332] shadow-lg border-b border-gray-200 dark:border-gray-700 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
                 LLM Council
               </h1>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Multi-Model AI Decision Framework
               </p>
             </div>
-            <button
-              onClick={() => setShowHistory(!showHistory)}
-              className="btn-secondary"
-            >
-              {showHistory ? 'Hide History' : 'Show History'}
-            </button>
+            <div className="flex items-center gap-4">
+              <ThemeToggle />
+              <button
+                onClick={() => setShowHistory(!showHistory)}
+                className="btn-secondary"
+              >
+                {showHistory ? 'Hide History' : 'Show History'}
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -110,15 +114,15 @@ export default function App() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Error Display */}
         {error && (
-          <div className="mb-4 p-4 bg-red-900/30 border border-red-700 rounded-lg">
-            <p className="text-red-400">Error: {error}</p>
+          <div className="mb-4 p-4 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg">
+            <p className="text-red-700 dark:text-red-400">Error: {error}</p>
           </div>
         )}
 
         {/* Decision ID Display */}
         {displayDecisionId && (
-          <div className="mb-4 p-3 bg-blue-900/30 border border-blue-700 rounded-lg">
-            <p className="text-blue-400 text-sm">
+          <div className="mb-4 p-3 bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg">
+            <p className="text-blue-700 dark:text-blue-400 text-sm">
               {historicalData ? '📜 Historical ' : ''}Decision ID: <span className="font-mono font-bold">#{displayDecisionId}</span>
               {historicalData && (
                 <button
@@ -158,7 +162,7 @@ export default function App() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Council Member Responses - Left Column (2/3) */}
             <div className="lg:col-span-2 space-y-4">
-              <h2 className="text-2xl font-bold text-gray-100">Council Responses</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Council Responses</h2>
               {councilMembersList.map(modelId => (
                 <CouncilMemberCard
                   key={modelId}
@@ -182,14 +186,14 @@ export default function App() {
         {modelsLoading && (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-            <p className="mt-4 text-gray-400">Loading models...</p>
+            <p className="mt-4 text-gray-500 dark:text-gray-400">Loading models...</p>
           </div>
         )}
       </main>
 
       {/* Footer */}
-      <footer className="mt-12 py-6 border-t border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 text-center text-sm text-gray-400">
+      <footer className="mt-12 py-6 border-t border-gray-200 dark:border-gray-700 transition-colors duration-200">
+        <div className="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500 dark:text-gray-400">
           <p className="mb-2">Multi-Model AI Decision Framework • LLM Council v1.0.0 • MIT License</p>
           <div className="flex justify-center space-x-4">
             <span>&copy; 2025 Barnaby Jeans</span>
@@ -198,7 +202,7 @@ export default function App() {
               href="https://github.com/bjeans/Multi-AI-Chat"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-blue-400 transition-colors"
+              className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
             >
               GitHub
             </a>
@@ -207,7 +211,7 @@ export default function App() {
               href="https://hub.docker.com/r/bjeans/multi-ai-chat"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-blue-400 transition-colors"
+              className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
             >
               DockerHub
             </a>

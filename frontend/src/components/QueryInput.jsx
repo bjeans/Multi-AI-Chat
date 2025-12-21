@@ -85,7 +85,7 @@ export default function QueryInput({
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Research Prompt */}
         <div>
-          <label className="block text-sm font-medium mb-3 text-gray-300">
+          <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">
             Research Prompt
           </label>
           <textarea
@@ -99,7 +99,7 @@ export default function QueryInput({
 
           {/* Quick Prompts */}
           <div className="flex gap-2 mt-3">
-            <span className="text-xs text-gray-400 self-center mr-1">Quick prompts:</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 self-center mr-1">Quick prompts:</span>
             {Object.keys(QUICK_PROMPTS).map(prompt => (
               <button
                 key={prompt}
@@ -122,10 +122,10 @@ export default function QueryInput({
         {/* Council Members */}
         <div>
           <div className="flex justify-between items-center mb-3">
-            <label className="block text-sm font-medium text-gray-300">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Council Members
             </label>
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-gray-500 dark:text-gray-400">
               Select 2+ models for best results ({activeSelectedModels.length} selected)
             </span>
           </div>
@@ -145,7 +145,7 @@ export default function QueryInput({
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {availableModels.length === 0 ? (
-                <p className="text-gray-500 col-span-full">No models available</p>
+                <p className="text-gray-500 dark:text-gray-400 col-span-full">No models available</p>
               ) : (
                 availableModels.map(model => {
                   const modelId = model.id || model.name;
@@ -167,13 +167,13 @@ export default function QueryInput({
                           disabled={disabled}
                           tabIndex={-1}
                           aria-hidden="true"
-                          className="mt-1 rounded text-blue-600 focus:ring-blue-500 bg-transparent border-gray-600"
+                          className="mt-1 rounded text-blue-600 focus:ring-blue-500 bg-white dark:bg-transparent border-gray-300 dark:border-gray-600"
                         />
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-gray-100 truncate">
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                             {model.name || model.display_name}
                           </div>
-                          <div className="text-xs text-gray-400 mt-1">
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             {getModelProviderLabel(modelId)}
                           </div>
                         </div>
@@ -188,8 +188,8 @@ export default function QueryInput({
 
         {/* Chairman Model */}
         <div>
-          <label className="block text-sm font-medium mb-3 text-gray-300">
-            Chairman Model <span className="text-xs text-gray-400 font-normal">Synthesizes the final answer</span>
+          <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">
+            Chairman Model <span className="text-xs text-gray-500 dark:text-gray-400 font-normal">Synthesizes the final answer</span>
           </label>
           <select
             value={chairman}
